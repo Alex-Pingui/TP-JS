@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="UTF-8">
+  <title>Title</title>
 </head>
 <body>
+  <div id="app">
+    <router-link to="/">Home</router-link>
+    <router-link to="/entities">Entities</router-link>
+    <router-view></router-view>
+  </div>
 
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+  <script type="module" src="js/index.js"></script>
 </body>
 </html>
