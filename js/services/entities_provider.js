@@ -21,4 +21,22 @@ export default class EntitiesProvider{
             }
         ).catch(error => console.log(error));
     }
+
+    static async fetchEntity(entityId){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let entity=await fetch(`${ENDPOINT}/${entityId}`, options);
+        let json=entity.json();
+
+        json.then(
+            entityData => {
+                console.log(entityData);
+                return new Entity(entityData);
+            }
+        ).catch(error => console.log(error));
+    }
 }
