@@ -20,19 +20,19 @@ let tempData = {
 };
 
 export default class EntityAll {
-  render(container) {
-    container.innerHTML = `
+  async render() {
+    const items = tempData.entities.map(entity =>
+      `<li>${entity.id} ${entity.nom} (Type: ${entity.type}, PV: ${entity.pv})</li>`
+    ).join('');
+
+    return `
       <main>
-        <h1>Tous les entités</h1>
-        <p>Liste des entités disponibles.</p>
-        <ul id="entity-list"></ul>
+        <h1>Toutes les entités</h1>
+        <ul>${items}</ul>
       </main>
     `;
-    tempData.entities.forEach(entity => {
-        const listItem = document.createElement("li");
-        listItem.textContent = `${entity.id} ${entity.nom} (Type: ${entity.type}, PV: ${entity.pv}, Hauteur: ${entity.hauteur}m, Largeur: ${entity.largeur}m)`;
-        document.getElementById("entity-list").appendChild(listItem);
-    });
+  }
+}
     // EntityProvider.getAll()
     //     .then(entities => {
     //         const list = document.getElementById("entity-list");
@@ -46,5 +46,3 @@ export default class EntityAll {
     //         const list = document.getElementById("entity-list");
     //         list.innerHTML = `<p>Erreur : ${error.message}</p>`;
     //     });
-  }
-}
