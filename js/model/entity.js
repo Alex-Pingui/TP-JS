@@ -1,7 +1,9 @@
-export class Entity{
+export default class Entity{
     #id;
     #nom;
-    #type;
+    #comportement;
+    #categories;
+    #description;
     #pv;
     #hauteur;
     #largeur;
@@ -10,7 +12,9 @@ export class Entity{
     constructor(data){
         this.#id = data["id"];
         this.#nom = data["nom"];
-        this.#type = data["type"];
+        this.#comportement = data["comportement"];
+        this.#categories = data["categories"];
+        this.#description = data["description"];
         this.#pv = data["pv"];
         this.#hauteur = data["hauteur"];
         this.#largeur = data["largeur"];
