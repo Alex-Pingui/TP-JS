@@ -1,5 +1,6 @@
 import {ENDPOINT} from "../config.js";
-import {Entity} from "../model/entity.js";
+import Entity from "../model/entity.js";
+import Damage from "../model/damage.js";
 
 export default class EntitiesProvider{
     static async fetchEntities(){
@@ -9,7 +10,7 @@ export default class EntitiesProvider{
                 'Content-Type': 'application/json'
             }
         };
-        let entities=await fetch(`${ENDPOINT}/entities`, options);
+        let entities=await fetch(`${ENDPOINT}/entites`, options);
         let json=entities.json();
 
         let entitiesList=[];
@@ -20,5 +21,65 @@ export default class EntitiesProvider{
                 return entitiesList;
             }
         ).catch(error => console.log(error));
+    }
+
+    static async fetchEntity(id){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let entity=await fetch(`${ENDPOINT}/entites/${id}`, options);
+        let json=entity.json();
+
+        let entityObject;
+        json.then(
+            entityData => {
+                entityObject=new Entity(entityData);
+                console.log(entityObject.toString());
+                return entityObject;
+            }
+        ).catch(error => console.log(error));
+    }
+
+    static async fetchDamages(){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let damages=await fetch(`${ENDPOINT}/degats`, options);
+        let json=damages.json();
+
+        let damagesList=[];
+        json.then(
+            list => {
+                list.forEach(damage => damagesList.push(new Damage(damage)));
+                damagesList.forEach(damage => console.log(damage.toString()));
+                return damagesList;
+            }
+        ).catch(error => console.log(error));
+    }
+
+    static async fetchEntityDamages(id){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let damages=await fetch(`${ENDPOINT}/damages/${id}`, options);
+        let json=damages.json();
+
+        let damagesList=[];
+        json.then(
+            list => {
+                list.forEach(damage => damagesList.push(new Damage(damage)));
+                damagesList.forEach(damage => console.log(damage.toString()));
+                return damagesList;
+            }
+        )
     }
 }
