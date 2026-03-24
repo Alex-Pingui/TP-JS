@@ -21,6 +21,23 @@ export default class Entity{
         this.#image = data["image"];
     }
 
+    get id() { return this.#id; }
+
+    get nom() { return this.#nom; }
+
+    get comportement() { return this.#comportement; }
+
+    get categories() { return this.#categories; }
+
+    get description() { return this.#description; }
+
+    get pv() { return this.#pv; }
+
+    get hauteur() { return this.#hauteur; }
+
+    get largeur() { return this.#largeur; }
+    
+    get image() { return this.#image; }
     render(entityDamages){
         let damagesList="";
         if(entityDamages.length>0){
