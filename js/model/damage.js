@@ -3,10 +3,17 @@ export default class Damage {
     #type;
     #degats;
 
-    constructor(data){
-        this.#id = data["id"];
+    constructor(entityId, data){
+        this.#id = entityId;
         this.#type = data["type"];
         this.#degats = data["degats"];
+    }
+
+    showDamage(){
+        return '<section class="damage">' +
+            '<p>Type: ${this.#type}</p>' +
+            '<p>Dégats: ${this.#degats}</p>' +
+            '</section>';
     }
 
     toString(){

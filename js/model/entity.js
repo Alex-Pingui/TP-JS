@@ -21,6 +21,49 @@ export default class Entity{
         this.#image = data["image"];
     }
 
+    render(entityDamages){
+        let damagesList="";
+        if(entityDamages.length>0){
+            damagesList+="<ul>";
+            entityDamages.forEach(damage => {
+                damagesList+="<li>" +
+                    damage.showDamage() +
+                    "</li>";
+            });
+            damagesList+="</ul>";
+        }
+        else{
+            damagesList+="<p>Aucun dégats ne peut être affligé par cet entité</p>"
+        }
+
+        return `<section id='${this.#id}'>` +
+            `<h1>Entité ${this.#nom}</h1>` +
+            `<img src="images/${this.#image}" alt="Image de l'entité ${this.#nom}">` +
+            `<p>PV: ${this.#pv}</p>` +
+            '<h2>Description</h2>' +
+            `<p>${this.#description}</p>` +
+            this.#showCaracteristiques() +
+            `<h2>Dégats affligeables par ${this.#nom}</h2>` +
+            damagesList +
+            "</section>";
+    }
+
+    #showCaracteristiques(){
+        let categoriesUl="<ul>";
+        for(let categorie of this.#categories){
+            categoriesUl+=`<li>${categorie}</li>`;
+        }
+        categoriesUl+=`</ul>`;
+
+        return '<section class="caracteristiques">' +
+            '<h2>Caractéristiques</h2>' +
+            `<p><strong>Comportement</strong>: ${this.#comportement}</p>` +
+            '<p><strong>Catégories: </strong></p>' +
+            categoriesUl +
+            `<p>Hauteur: ${this.#hauteur} | Largeur: ${this.#largeur}</p>` +
+            '</section>';
+    }
+
     toString(){
         return `Entité ${this.#nom}`;
     }
