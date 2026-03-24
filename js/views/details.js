@@ -1,6 +1,6 @@
 import EntitiesProvider from "../services/entities_provider.js";
 
-export default class DetailsEntite{
+export default class EntityData{
     static async render(entityId){
         let entity=await EntitiesProvider.fetchEntity(entityId);
         console.log(entity.toString());
