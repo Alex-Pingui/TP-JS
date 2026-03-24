@@ -23,16 +23,8 @@ export default class EntitiesProvider{
             }
         };
         let entity=await fetch(`${ENDPOINT}/entites/${id}`, options);
-        let json=entity.json();
-
-        let entityObject;
-        json.then(
-            entityData => {
-                entityObject=new Entity(entityData);
-                console.log(entityObject.toString());
-                return entityObject;
-            }
-        ).catch(error => console.log(error));
+        let entityData=await entity.json();
+        return new Entity(entityData);
     }
 
     static async fetchDamages(){
@@ -62,16 +54,14 @@ export default class EntitiesProvider{
                 'Content-Type': 'application/json'
             }
         };
-        let damages=await fetch(`${ENDPOINT}/damages/${id}`, options);
-        let json=damages.json();
+        let damages=await fetch(`${ENDPOINT}/degats/${id}`, options);
+        let damagesList = [];
+        if(damages.ok) {
+            let damagesData = await damages.json();
+            console.log(damagesData);
 
-        let damagesList=[];
-        json.then(
-            list => {
-                list.forEach(damage => damagesList.push(new Damage(damage)));
-                damagesList.forEach(damage => console.log(damage.toString()));
-                return damagesList;
-            }
-        )
+            damagesData["degats"].forEach(damage => damagesList.push(new Damage(damagesData["id"], damage)));
+        }
+        return damagesList;
     }
 }
