@@ -10,17 +10,9 @@ export default class EntitiesProvider{
                 'Content-Type': 'application/json'
             }
         };
-        let entities=await fetch(`${ENDPOINT}/entites`, options);
-        let json=entities.json();
-
-        let entitiesList=[];
-        json.then(
-            list => {
-                list.forEach(entityData => entitiesList.push(new Entity(entityData)));
-                entitiesList.forEach(entity => console.log(entity.toString()));
-                return entitiesList;
-            }
-        ).catch(error => console.log(error));
+        const response = await fetch(`${ENDPOINT}/entites`, options);
+        const list = await response.json();
+        return list.map(entityData => new Entity(entityData));
     }
 
     static async fetchEntity(id){
