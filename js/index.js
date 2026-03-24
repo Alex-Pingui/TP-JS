@@ -29,7 +29,13 @@ const router = async () => {
     if (typeof page.after_render === 'function') {
         await page.after_render();
     }
-};
+    content.addEventListener('click', (e) => {
+        if (e.target.matches('.btn[href^="#/entities/"]')) {
+            e.preventDefault();
+            location.hash = e.target.getAttribute('href');
+        }
+    });
+}
 
 window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
