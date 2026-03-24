@@ -23,14 +23,23 @@ export default class Entity{
         this.#image = data["image"];
     }
 
-    renderMainData(){
-        return `<section id='${this.#id}'>` +
-            `<h1>Entité ${this.#nom}</h1>` +
-            loadImage(`images/${this.#image}`, `Image de l'entité ${this.#nom}`) +
-            `<p>PV: ${this.#pv}</p>` +
-            "</section>";
-    }
+    get id() { return this.#id; }
 
+    get nom() { return this.#nom; }
+
+    get comportement() { return this.#comportement; }
+
+    get categories() { return this.#categories; }
+
+    get description() { return this.#description; }
+
+    get pv() { return this.#pv; }
+
+    get hauteur() { return this.#hauteur; }
+
+    get largeur() { return this.#largeur; }
+    
+    get image() { return this.#image; }
     render(entityDamages){
         let damagesList="";
         if(entityDamages.length>0){
