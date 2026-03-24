@@ -45,6 +45,11 @@ export default class EntityAll {
     }
 
     async after_render() {
+        this.setupLazyLoading();
+        this.setupSearch();
+    }
+
+    setupLazyLoading() {
         const options = {
             root: null,
             rootMargin: "0px",
@@ -60,23 +65,27 @@ export default class EntityAll {
         document
             .querySelectorAll('img.card-img-top')
             .forEach(img => observer.observe(img));
+    }
+
+    setupSearch() {
         const searchInput = document.getElementById('entity-search');
         if (!searchInput) return;
         const cards = Array.from(document.querySelectorAll('.entity-card'));
-        const filterCards = (value) => {
-            const term = value.toLowerCase();
-            cards.forEach(card => {
-                const textEl = card.querySelector('.entity-text');
-                const text = textEl ? textEl.textContent.toLowerCase() : '';
-                if (text.includes(term)) {
-                    card.classList.remove('d-none');
-                } else {
-                    card.classList.add('d-none');
-                }
-            });
-        };
         searchInput.addEventListener('input', (e) => {
-            filterCards(e.target.value);
+            this.filterCards(cards, e.target.value);
+        });
+    }
+
+    filterCards(cards, value) {
+        const term = value.toLowerCase();
+        cards.forEach(card => {
+            const textEl = card.querySelector('.entity-text');
+            const text = textEl ? textEl.textContent.toLowerCase() : '';
+            if (text.includes(term)) {
+                card.classList.remove('d-none');
+            } else {
+                card.classList.add('d-none');
+            }
         });
     }
 }
