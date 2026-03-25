@@ -4,12 +4,14 @@ import Home from "./views/Home.js";
 import EntityAll from "./views/EntityAll.js";
 import About from "./views/About.js";
 import Error404 from "./views/Error404.js";
+import FightEntitiesSelector from "./views/fight_entities_selector.js";
 
 const routes = {
     '/' : Home,
     '/entities' : EntityAll,
     // '/entities/:id' : EntityDetail,
-    '/about' : About
+    '/about' : About,
+    '/fight': FightEntitiesSelector,
 };
 
 const router = async () => {
