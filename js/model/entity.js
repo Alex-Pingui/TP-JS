@@ -11,6 +11,8 @@ export default class Entity{
     #largeur;
     #image;
 
+    #selectedToFight;
+
     constructor(data){
         this.#id = data["id"];
         this.#nom = data["nom"];
@@ -21,6 +23,7 @@ export default class Entity{
         this.#hauteur = data["hauteur"];
         this.#largeur = data["largeur"];
         this.#image = data["image"];
+        this.#selectedToFight=false;
     }
 
     get id() { return this.#id; }
@@ -40,6 +43,14 @@ export default class Entity{
     get largeur() { return this.#largeur; }
     
     get image() { return this.#image; }
+
+    get isSelected(){
+        return this.#selectedToFight;
+    }
+
+    set selectedToFight(selectedToFight){
+        this.#selectedToFight = selectedToFight;
+    }
     render(entityDamages){
         let damagesList="";
         if(entityDamages.length>0){
