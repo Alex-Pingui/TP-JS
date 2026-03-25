@@ -1,10 +1,10 @@
+import Utils from "./services/ParsedURL.js";
+
 import Home from "./views/Home.js";
 import EntityAll from "./views/EntityAll.js";
 import EntityDetail from "./views/details.js";
 import About from "./views/About.js";
 import Error404 from "./views/Error404.js";
-
-import Utils from "./services/ParsedURL.js";
 
 const routes = {
     '/' : Home,

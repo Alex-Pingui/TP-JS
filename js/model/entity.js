@@ -1,3 +1,5 @@
+import loadImage from "../utils/image_loading.js";
+
 export default class Entity{
     #id;
     #nom;
@@ -55,7 +57,7 @@ export default class Entity{
 
         return `<section id='${this.#id}'>` +
             `<h1>Entité ${this.#nom}</h1>` +
-            `<img src="images/${this.#image}" alt="Image de l'entité ${this.#nom}">` +
+            loadImage(`images/${this.#image}`, `Image de l'entité ${this.#nom}`) +
             `<p>PV: ${this.#pv}</p>` +
             '<h2>Description</h2>' +
             `<p>${this.#description}</p>` +
