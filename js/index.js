@@ -5,11 +5,13 @@ import EntityAll from "./views/EntityAll.js";
 import EntityDetail from "./views/details.js";
 import About from "./views/About.js";
 import Error404 from "./views/Error404.js";
+import Combat from "./views/Combat.js";
 
 const routes = {
     '/' : Home,
     '/entities' : EntityAll,
     '/entities/:id' : EntityDetail,
+    '/combat' : Combat,
     '/about' : About
 };
 
@@ -30,7 +32,7 @@ const router = async () => {
         await page.after_render();
     }
     content.addEventListener('click', (e) => {
-        if (e.target.matches('.btn[href^="#/entities/"]')) {
+        if (e.target.matches('.btn[href^="#/entities/"]' || e.target.matches('a[href^="#/combat"]'))) {
             e.preventDefault();
             location.hash = e.target.getAttribute('href');
         }
@@ -39,39 +41,3 @@ const router = async () => {
 
 window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
-
-// const Home = {
-//   template: `<div><h1>Home</h1></div>`,
-// };
-
-// const EntityAll = {
-//   template: `<div><h1>Entities</h1></div>`,
-// };
-
-// const routes = [
-//   {
-//     path: "/",
-//     name: "Home",
-//     component: Home,
-//     alias: ["/home", "/accueil"],
-//   },
-//   {
-//     path: "/entities",
-//     name: "Entities",
-//     component: EntityAll,
-//     alias: "/entites",
-//   },
-//   {
-//     path: "/:pathMatch(.*)*",
-//     redirect: { name: "Home" },
-//   },
-// ];
-
-// const router = createRouter({
-//   history: createWebHashHistory(),
-//   routes,
-// });
-
-// const app = createApp({});
-// app.use(router);
-// app.mount("#app");
