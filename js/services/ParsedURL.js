@@ -3,11 +3,11 @@ const ParsedURL = {
         let url = location.hash.slice(1).toLowerCase() || '/';
         let r = url.split("/")
         let request = {
-            resource : null
-            // id : null
+            resource : null,
+            id : null
         }
         request.resource = r[1]
-        // request.id = r[2]
+        request.id = r[2]
         return request
     },
     sleep: (ms) => {
