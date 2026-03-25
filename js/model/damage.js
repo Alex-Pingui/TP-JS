@@ -9,6 +9,12 @@ export default class Damage {
         this.#degats = data["degats"];
     }
 
+    get id() { return this.#id; }
+
+    get type() { return this.#type; }
+
+    get degats() { return this.#degats; }
+
     showDamage() {
         return /*html*/`
             <div class="card mb-2">
