@@ -44,7 +44,7 @@ export default class EntityAll {
         ).join('\n ')
             }
             </div>
-        `+"<div class='row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 selected-entities'><h2>Entités selectionnées pour combattre</h2></div>";
+        `+"<h2>Entités selectionnées pour combattre</h2><div class='row row-cols-1 row-cols-md-2 g-3 selected-entities'></div><button class='btn btn-sm btn-outline-secondary start-fight-btn' disabled='disabled'>Démarrer le combat</button>";
         return view;
     }
 
@@ -52,6 +52,7 @@ export default class EntityAll {
         this.setupLazyLoading();
         this.setupSearch();
         this.setupAddEntityToFight();
+        this.setupRemoveEntityToFight();
     }
 
     setupLazyLoading() {
@@ -89,22 +90,20 @@ export default class EntityAll {
                 entity => {
                     if(this.#entitiesToFight<2) {
                         this.#entitiesToFight++;
-                        console.log(entity);
-                        document.querySelector(".selected-entities").innerHTML+=`<div className="col entity-card">
-                        <div className="card shadow-sm">
-                            <div className="card-body">
-                                <img className="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
-                                <p className="card-text entity-text">
+                        document.querySelector(".start-fight-btn").disabled=this.#entitiesToFight<2;
+                        document.querySelector(".selected-entities").innerHTML+=`<div class="col entity-card">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
+                                <p class="card-text entity-text">
                                     ${entity.nom} - ${entity.comportement}
                                 </p>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="btn-group">
-                                        <a href="#/entities/${entity.id}" className="btn btn-sm btn-outline-secondary">
-                                            Voir ${entity.nom}
-                                        </a>
+                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group gap-1">
+                                        <a href="#/entities" class="btn btn-sm btn-outline-secondary remove-to-fight" id="${entity.id}">Retirer du combat</a>
                                     </div>
-                                    <small className="text-body-secondary">
-                                        ${entity.pv} <i className="bi bi-heart" style="font-size: 1.3rem;"></i>
+                                    <small class="text-body-secondary">
+                                        ${entity.pv} <i class="bi bi-heart" style="font-size: 1.3rem;"></i>
                                     </small>
                                 </div>
                             </div>
@@ -118,6 +117,21 @@ export default class EntityAll {
                 }
             ).catch(error => console.log(error));
         }))
+    }
+
+    setupRemoveEntityToFight() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-to-fight')) {
+                const card = e.target.closest('.entity-card');
+
+                if (card) {
+                    card.remove();
+                    this.#entitiesToFight--;
+
+                    document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 2;
+                }
+            }
+        })
     }
 
     filterCards(cards, value) {
