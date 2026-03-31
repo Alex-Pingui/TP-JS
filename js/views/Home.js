@@ -1,4 +1,5 @@
 import EntitiesProvider from "../services/entities_provider.js";
+import EntityAll from "./EntityAll.js";
 
 export default class Home {
   constructor() {
@@ -25,6 +26,9 @@ export default class Home {
           Résultats de la recherche :
           <ul id="results-list" class="mt-2 mb-0"></ul>
         </div>
+        <div>
+        <h2>Entités favorites</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 favorite-entities"></div>
         </div>
       </main>
     `;
@@ -33,6 +37,8 @@ export default class Home {
   async after_render() {
     this.allEntities = await EntitiesProvider.fetchEntities();
     this.setupSearchInput();
+    EntityAll.removeFavorite("/");
+    EntityAll.reloadFavorites();
   }
 
   setupSearchInput() {
