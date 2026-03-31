@@ -15,19 +15,31 @@ export default class Combat {
     async render() {
         this.entities = await EntityProvider.fetchEntities();
         
+        let shouldPickRandom = true;
         const storedEntities = localStorage.getItem('combatEntities');
+        
         if (storedEntities) {
             try {
                 const ids = JSON.parse(storedEntities);
-                this.fighter1 = this.entities.find(e => e.id == ids[0]);
-                this.fighter2 = this.entities.find(e => e.id == ids[1]);
+                if (ids[0]) {
+                    this.fighter1 = this.entities.find(e => e.id == ids[0]);
+                    
+                    if (ids[1]) {
+                        this.fighter2 = this.entities.find(e => e.id == ids[1]);
+                        shouldPickRandom = false; 
+                    } else {
+                        const autresEntites = this.entities.filter(e => e.id != ids[0]);
+                        this.fighter2 = autresEntites[Math.floor(Math.random() * autresEntites.length)];
+                        shouldPickRandom = false; 
+                    }
+                }
                 localStorage.removeItem('combatEntities');
             } catch (e) {
                 console.error("Erreur de parsing des entités:", e);
             }
         }
 
-        if (!this.fighter1 || !this.fighter2) {
+        if (shouldPickRandom || !this.fighter1 || !this.fighter2) {
             [this.fighter1, this.fighter2] = this.pickRandomFighters();
         }
 

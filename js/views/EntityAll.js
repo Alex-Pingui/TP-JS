@@ -104,10 +104,10 @@ export default class EntityAll {
                         
                         btn.classList.remove('btn-outline-secondary');
                         btn.classList.add('btn-success');
-                        btn.textContent = "Sélectionné ✅";
+                        btn.textContent = "Sélectionné";
                         btn.disabled = true;
 
-                        document.querySelector(".start-fight-btn").disabled=this.#entitiesToFight<2;
+                        document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 1;
                         document.querySelector(".selected-entities").innerHTML+=`<div class="col entity-card selected-fighter" data-id="${entity.id}">
                         <div class="card shadow-sm border-warning">
                             <div class="card-body">
@@ -152,7 +152,7 @@ export default class EntityAll {
                     const entityId = card.dataset.id;
                     card.remove();
                     this.#entitiesToFight--;
-                    document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 2;
+                    document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 1;
 
                     const addBtn = document.querySelector(`.add-to-fight[id="${entityId}"]`);
                     if (addBtn) {
@@ -168,6 +168,10 @@ export default class EntityAll {
                     const id1 = selectedCards[0].dataset.id;
                     const id2 = selectedCards[1].dataset.id;
                     localStorage.setItem('combatEntities', JSON.stringify([id1, id2]));
+                    window.location.hash = '#/combat';
+                } else if (selectedCards.length === 1) {
+                    const id1 = selectedCards[0].dataset.id;
+                    localStorage.setItem('combatEntities', JSON.stringify([id1, null]));
                     window.location.hash = '#/combat';
                 }
             }
