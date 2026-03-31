@@ -14,7 +14,22 @@ export default class Combat {
 
     async render() {
         this.entities = await EntityProvider.fetchEntities();
-        [this.fighter1, this.fighter2] = this.pickRandomFighters();
+        
+        const storedEntities = localStorage.getItem('combatEntities');
+        if (storedEntities) {
+            try {
+                const ids = JSON.parse(storedEntities);
+                this.fighter1 = this.entities.find(e => e.id == ids[0]);
+                this.fighter2 = this.entities.find(e => e.id == ids[1]);
+                localStorage.removeItem('combatEntities');
+            } catch (e) {
+                console.error("Erreur de parsing des entités:", e);
+            }
+        }
+
+        if (!this.fighter1 || !this.fighter2) {
+            [this.fighter1, this.fighter2] = this.pickRandomFighters();
+        }
 
         await this.loadDamages();
 
