@@ -13,6 +13,16 @@ export default class EntityAll {
             <h2>Entités favorites</h2>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 favorite-entities"></div>
             </div>
+            <h2>Entités sélectionnées pour combattre</h2>
+            <div class="row row-cols-1 row-cols-md-2 g-3 mb-4 selected-entities">
+                <!-- Les entités sélectionnées apparaîtront ici -->
+            </div>
+            <div class="mb-4">
+                <button class="btn btn-danger w-100 start-fight-btn" disabled="disabled">Démarrer le combat</button>
+            </div>
+            
+            <hr>
+
             <h2>Toutes les entités</h2>
             <div class="mb-3">
                 <input
@@ -36,13 +46,12 @@ export default class EntityAll {
                                     <div class="btn-group gap-1">
                                     <a href="#/entities" class="btn btn-sm btn-outline-secondary add-favorite" id="${entity.id}">Ajouter aux favoris</a>
                                         <a href="#/entities/${entity.id}" class="btn btn-sm btn-outline-secondary">
-                                            Voir ${entity.nom}
+                                            Voir
                                         </a>
-                                        <a href="#/entities" class="btn btn-sm btn-outline-secondary add-to-fight" id="${entity.id}">Sélectionner pour un combat</a>
-
+                                        <button class="btn btn-sm btn-outline-secondary add-to-fight" id="${entity.id}">Sélectionner</button>
                                     </div>
                                     <small class="text-body-secondary">
-                                        ${entity.pv} <i class="bi bi-heart" style="font-size: 1.3rem;"></i>
+                                        ${entity.pv} <i class="bi bi-heart text-danger" style="font-size: 1.3rem;"></i>
                                     </small>
                                 </div>
                             </div>
@@ -52,7 +61,7 @@ export default class EntityAll {
         ).join('\n ')
             }
             </div>
-        `+"<h2>Entités selectionnées pour combattre</h2><div class='row row-cols-1 row-cols-md-2 g-3 selected-entities'></div><button class='btn btn-sm btn-outline-secondary start-fight-btn' disabled='disabled'>Démarrer le combat</button>";
+        `;
         return view;
     }
 
@@ -96,14 +105,21 @@ export default class EntityAll {
     setupAddEntityToFight() {
         let btns=document.querySelectorAll(".add-to-fight");
         btns.forEach(btn => btn.addEventListener('click', (e) => {
+            e.preventDefault();
             let entityPromise=EntityProvider.fetchEntity(btn.id);
             entityPromise.then(
                 entity => {
                     if(this.#entitiesToFight<2) {
                         this.#entitiesToFight++;
-                        document.querySelector(".start-fight-btn").disabled=this.#entitiesToFight<2;
-                        document.querySelector(".selected-entities").innerHTML+=`<div class="col entity-card">
-                        <div class="card shadow-sm">
+                        
+                        btn.classList.remove('btn-outline-secondary');
+                        btn.classList.add('btn-success');
+                        btn.textContent = "Sélectionné";
+                        btn.disabled = true;
+
+                        document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 1;
+                        document.querySelector(".selected-entities").innerHTML+=`<div class="col entity-card selected-fighter" data-id="${entity.id}">
+                        <div class="card shadow-sm border-warning">
                             <div class="card-body">
                                 <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
                                 <p class="card-text entity-text">
@@ -111,16 +127,19 @@ export default class EntityAll {
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group gap-1">
-                                        <a href="#/entities" class="btn btn-sm btn-outline-secondary remove-to-fight" id="${entity.id}">Retirer du combat</a>
+                                        <button class="btn btn-sm btn-outline-danger remove-to-fight" data-id="${entity.id}">Retirer du combat</button>
                                     </div>
                                     <small class="text-body-secondary">
-                                        ${entity.pv} <i class="bi bi-heart" style="font-size: 1.3rem;"></i>
+                                        ${entity.pv} <i class="bi bi-heart text-danger" style="font-size: 1.3rem;"></i>
                                     </small>
                                 </div>
                             </div>
                         </div>
                     </div>`;
                         EntityAll.setupLazyLoading();
+                        
+                        
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                     else{
                         alert("Il y a déjà 2 entités sélectionnées pour combattre");
@@ -131,18 +150,45 @@ export default class EntityAll {
     }
 
     setupRemoveEntityToFight() {
-        document.addEventListener('click', (e) => {
+        if (this._removeClickHandler) {
+            document.removeEventListener('click', this._removeClickHandler);
+        }
+
+        this._removeClickHandler = (e) => {
             if (e.target.classList.contains('remove-to-fight')) {
-                const card = e.target.closest('.entity-card');
+                e.preventDefault();
+                const card = e.target.closest('.selected-fighter');
 
                 if (card) {
+                    const entityId = card.dataset.id;
                     card.remove();
                     this.#entitiesToFight--;
+                    document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 1;
 
-                    document.querySelector(".start-fight-btn").disabled = this.#entitiesToFight < 2;
+                    const addBtn = document.querySelector(`.add-to-fight[id="${entityId}"]`);
+                    if (addBtn) {
+                        addBtn.classList.remove('btn-success');
+                        addBtn.classList.add('btn-outline-secondary');
+                        addBtn.textContent = "Sélectionner";
+                        addBtn.disabled = false;
+                    }
+                }
+            } else if (e.target.classList.contains('start-fight-btn')) {
+                const selectedCards = document.querySelectorAll('.selected-fighter');
+                if (selectedCards.length === 2) {
+                    const id1 = selectedCards[0].dataset.id;
+                    const id2 = selectedCards[1].dataset.id;
+                    localStorage.setItem('combatEntities', JSON.stringify([id1, id2]));
+                    window.location.hash = '#/combat';
+                } else if (selectedCards.length === 1) {
+                    const id1 = selectedCards[0].dataset.id;
+                    localStorage.setItem('combatEntities', JSON.stringify([id1, null]));
+                    window.location.hash = '#/combat';
                 }
             }
-        })
+        };
+
+        document.addEventListener('click', this._removeClickHandler);
     }
 
     filterCards(cards, value) {
