@@ -254,6 +254,13 @@ export default class Combat {
 
         document.getElementById('actions-panel').classList.remove('d-none');
         this.log('Le combat commence !');
+
+        if (this.fighter1.comportement.toLowerCase() === 'passif' && this.fighter2.comportement.toLowerCase() === 'passif') {
+            this.log(`<span class="text-warning fs-5">Match nul ! Les deux entités sont pacifiques et refusent de se battre.</span>`);
+            this.endFight('Personne', null);
+            return;
+        }
+
         this.setupPlayerActions();
         this.processTurn();
     }
@@ -262,13 +269,33 @@ export default class Combat {
         const actionsContainer = document.getElementById('player-attacks');
         actionsContainer.innerHTML = '';
 
-        this.fighter1Damages.forEach((attack) => {
+        if (this.fighter1.comportement.toLowerCase() === 'passif') {
             const btn = document.createElement('button');
-            btn.className = 'btn btn-primary';
-            btn.innerHTML = `<strong>${attack.type}</strong> <span class="badge bg-light text-dark">${attack.degats} DMG</span>`;
-            btn.onclick = () => this.playerAttack(attack);
+            btn.className = 'btn btn-secondary';
+            btn.innerHTML = `<strong>Passer le tour</strong>`;
+            btn.onclick = () => this.playerPassTurn();
             actionsContainer.appendChild(btn);
-        });
+        } else {
+            this.fighter1Damages.forEach((attack) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.innerHTML = `<strong>${attack.type}</strong> <span class="badge bg-light text-dark">${attack.degats} DMG</span>`;
+                btn.onclick = () => this.playerAttack(attack);
+                actionsContainer.appendChild(btn);
+            });
+        }
+    }
+
+    playerPassTurn() {
+        if (!this.isFighting || !this.isPlayerTurn) return;
+
+        this.log(`<span class="text-secondary">${this.fighter1.nom}</span> est pacifique et passe son tour.`);
+        this.setPlayerActionsEnabled(false);
+        
+        if (this.isFighting) {
+            this.isPlayerTurn = false;
+            this.processTurn();
+        }
     }
 
     setPlayerActionsEnabled(enabled) {
@@ -318,13 +345,17 @@ export default class Combat {
     enemyAttack() {
         if (!this.isFighting || this.isPlayerTurn) return;
 
-        const attack = this.getRandomDamage(this.fighter2Damages);
-        
-        this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - attack.degats);
-        this.log(`<span class="text-danger">${this.fighter2.nom}</span> riposte avec <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
-        this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
-
-        this.checkWinCondition();
+        if (this.fighter2.comportement.toLowerCase() === 'passif') {
+            this.log(`<span class="text-secondary">${this.fighter2.nom}</span> est pacifique et passe son tour.`);
+        } else {
+            const attack = this.getRandomDamage(this.fighter2Damages);
+            
+            this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - attack.degats);
+            this.log(`<span class="text-danger">${this.fighter2.nom}</span> riposte avec <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
+            this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
+            
+            this.checkWinCondition();
+        }
 
         if (this.isFighting) {
             this.turn++;
@@ -349,7 +380,9 @@ export default class Combat {
         turnIndicator.textContent = "Combat terminé";
         turnIndicator.className = 'badge bg-dark';
 
-        if (playerWon) {
+        if (playerWon === null) {
+            // Le match nul est déjà géré dans le log, on peut laisser vide
+        } else if (playerWon) {
             this.log(`<span class="text-success fs-5">Victoire ! ${winnerName} a gagné le combat !</span>`);
         } else {
             this.log(`<span class="text-danger fs-5">Défaite... ${winnerName} vous a vaincu.</span>`);
