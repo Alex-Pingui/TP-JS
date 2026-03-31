@@ -7,35 +7,24 @@ export default class Combat {
         this.fighter2 = null;
         this.fighter1Damages = [];
         this.fighter2Damages = [];
-        this.turn = 0;
+        this.turn = 1;
         this.isFighting = false;
+        this.isPlayerTurn = true;
     }
 
     async render() {
         this.entities = await EntityProvider.fetchEntities();
         [this.fighter1, this.fighter2] = this.pickRandomFighters();
 
-        // Charge les damages (instances Damage)
-        const fighter1DamageInstances = await EntityProvider.fetchEntityDamages(this.fighter1.id);
-        const fighter2DamageInstances = await EntityProvider.fetchEntityDamages(this.fighter2.id);
-
-        // Convertit en objets simples pour logique et affichage
-        this.fighter1Damages = fighter1DamageInstances.map(fighter => ({
-            type: fighter.type,
-            degats: fighter.degats
-        }));
-        this.fighter2Damages = fighter2DamageInstances.map(fighter => ({
-            type: fighter.type,
-            degats: fighter.degats
-        }));
+        await this.loadDamages();
 
         return /*html*/`
             <div class="container py-4">
-                <h2>Combat</h2>
+                <h2>Combat au tour par tour</h2>
                 
                 <div class="mb-4">
                     <button id="new-fight" class="btn btn-success me-2">
-                        <i class="bi bi-arrow-clockwise"></i> Nouveau combat
+                        <i class="bi bi-arrow-clockwise"></i> Changer les combattants
                     </button>
                     <button id="start-fight" class="btn btn-danger">
                         <i class="bi bi-play"></i> Démarrer le combat
@@ -43,49 +32,57 @@ export default class Combat {
                 </div>
 
                 <div class="row">
-                    <!-- Fighter 1 -->
+                    <!-- Fighter 1 (Player) -->
                     <div class="col-md-6 mb-4">
-                        <div class="card">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                Vous
+                            </div>
                             <div class="card-body text-center">
-                                <h4>${this.fighter1.nom}</h4>
-                                <img class="img-fluid mb-3" 
+                                <h4 id="name1">${this.fighter1.nom}</h4>
+                                <img id="img1" class="img-fluid mb-3" 
                                      src="./images/${this.fighter1.image}" 
                                      style="width: 120px; height: 120px; object-fit: cover;" />
-                                <p class="card-text">${this.fighter1.comportement}</p>
+                                <p id="comp1" class="card-text">${this.fighter1.comportement}</p>
                                 
                                 <div class="mb-2">
                                     <label class="form-label">PV: <span id="pv1">${this.fighter1.pv}</span></label>
                                     <div class="progress">
-                                        <div class="progress-bar bg-danger" 
+                                        <div class="progress-bar bg-success" 
                                              id="health1" 
                                              style="width: 100%" 
                                              role="progressbar">
                                         </div>
                                     </div>
                                 </div>
-                                <small class="text-muted" id="damages1">
-                                    Dégâts: ${this.fighter1Damages.length ?
-                                    this.fighter1Damages.map(d => `${d.type}:${d.degats}`).join(', ')
-                                    : 'Aucun'}
-                                </small>
+                                <div id="actions-panel" class="mt-3 d-none">
+                                    <hr>
+                                    <h5>Vos Actions</h5>
+                                    <div id="player-attacks" class="d-flex justify-content-center flex-wrap gap-2">
+                                        <!-- Actions will be generated here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Fighter 2 -->
+                    <!-- Fighter 2 (Enemy) -->
                     <div class="col-md-6 mb-4">
-                        <div class="card">
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                Adversaire
+                            </div>
                             <div class="card-body text-center">
-                                <h4>${this.fighter2.nom}</h4>
-                                <img class="img-fluid mb-3" 
+                                <h4 id="name2">${this.fighter2.nom}</h4>
+                                <img id="img2" class="img-fluid mb-3" 
                                      src="./images/${this.fighter2.image}" 
                                      style="width: 120px; height: 120px; object-fit: cover;" />
-                                <p class="card-text">${this.fighter2.comportement}</p>
+                                <p id="comp2" class="card-text">${this.fighter2.comportement}</p>
                                 
                                 <div class="mb-2">
                                     <label class="form-label">PV: <span id="pv2">${this.fighter2.pv}</span></label>
                                     <div class="progress">
-                                        <div class="progress-bar bg-danger" 
+                                        <div class="progress-bar bg-success" 
                                              id="health2" 
                                              style="width: 100%" 
                                              role="progressbar">
@@ -103,12 +100,13 @@ export default class Combat {
                 </div>
 
                 <div id="combat-log" class="card mt-4">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Journal de combat</h5>
+                        <span id="turn-indicator" class="badge bg-secondary">En attente</span>
                     </div>
                     <div class="card-body p-0">
                         <ul id="log-list" class="list-group list-group-flush">
-                            <li class="list-group-item">Combat prêt ! Cliquez "Démarrer le combat".</li>
+                            <li class="list-group-item">Prêt pour un nouveau combat !</li>
                         </ul>
                     </div>
                 </div>
@@ -121,15 +119,35 @@ export default class Combat {
         return [shuffled[0], shuffled[1]];
     }
 
-    getRandomDamage(damages) {
-        if (!damages || damages.length === 0) {
-            return { type: 'coup', degats: 10 };
+    async loadDamages() {
+        try {
+            const [fighter1DamageInstances, fighter2DamageInstances] = await Promise.all([
+                EntityProvider.fetchEntityDamages(this.fighter1.id),
+                EntityProvider.fetchEntityDamages(this.fighter2.id)
+            ]);
+
+            this.fighter1Damages = fighter1DamageInstances.map(damage => ({
+                type: damage.type,
+                degats: damage.degats
+            }));
+
+            this.fighter2Damages = fighter2DamageInstances.map(damage => ({
+                type: damage.type,
+                degats: damage.degats
+            }));
+            
+            if(this.fighter1Damages.length === 0) this.fighter1Damages.push({ type: 'Coup de base', degats: 2 });
+            if(this.fighter2Damages.length === 0) this.fighter2Damages.push({ type: 'Coup de base', degats: 2 });
+
+        } catch (error) {
+            console.error('Erreur chargement damages:', error);
+            this.fighter1Damages = [{ type: 'Coup', degats: 10 }];
+            this.fighter2Damages = [{ type: 'Coup', degats: 10 }];
         }
-        const randomDamage = damages[Math.floor(Math.random() * damages.length)];
-        return {
-            type: randomDamage.type,
-            degats: randomDamage.degats
-        };
+    }
+
+    getRandomDamage(damages) {
+        return damages[Math.floor(Math.random() * damages.length)];
     }
 
     log(message) {
@@ -160,23 +178,8 @@ export default class Combat {
     }
 
     async after_render() {
-        // COPIE D'ÉTAT : crée des copies modifiables avec currentPv
-        this.fighter1 = {
-            ...this.fighter1,
-            currentPv: this.fighter1.pv,
-            maxPv: this.fighter1.pv
-        };
-        this.fighter2 = {
-            ...this.fighter2,
-            currentPv: this.fighter2.pv,
-            maxPv: this.fighter2.pv
-        };
+        this.initFightersState();
 
-        this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
-        this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
-        this.updateDamagesDisplay();
-
-        // **GESTIONNAIRES D'ÉVÉNEMENTS**
         const newFightBtn = document.getElementById('new-fight');
         const startFightBtn = document.getElementById('start-fight');
 
@@ -186,131 +189,176 @@ export default class Combat {
         if (startFightBtn) {
             startFightBtn.addEventListener('click', () => this.startFight());
         }
-
-        window.currentCombat = this;
-        console.log('Combat prêt - Boutons configurés');
     }
 
-    newFight() {
-        // Reset état
-        this.turn = 0;
-        this.isFighting = false;
+    initFightersState() {
+        this.fighter1.currentPv = this.fighter1.pv;
+        this.fighter1.maxPv = this.fighter1.pv;
+        
+        this.fighter2.currentPv = this.fighter2.pv;
+        this.fighter2.maxPv = this.fighter2.pv;
 
-        // Nouveaux combattants
-        [this.fighter1, this.fighter2] = this.pickRandomFighters();
-
-        // Recharge damages
-        this.loadDamages();
-
-        // Reset PV
-        this.fighter1.currentPv = this.fighter1.maxPv;
-        this.fighter2.currentPv = this.fighter2.maxPv;
-
-        // Reset UI
         this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
         this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
-
-        // Reset log
-        const logList = document.getElementById('log-list');
-        if (logList) {
-            logList.innerHTML = '<li class="list-group-item">Nouveau combat prêt ! Cliquez "Démarrer le combat".</li>';
-        }
-
-        // Update damages display
-        this.updateDamagesDisplay();
-
-        this.log('🆕 Nouveau combat généré !');
     }
 
-    startFight() {
-        if (this.isFighting) {
-            this.log('Un combat est déjà en cours !');
-            return;
-        }
+    updateUIFighters() {
+        document.getElementById('name1').textContent = this.fighter1.nom;
+        document.getElementById('img1').src = `./images/${this.fighter1.image}`;
+        document.getElementById('comp1').textContent = this.fighter1.comportement;
+        
+        document.getElementById('name2').textContent = this.fighter2.nom;
+        document.getElementById('img2').src = `./images/${this.fighter2.image}`;
+        document.getElementById('comp2').textContent = this.fighter2.comportement;
 
-        this.isFighting = true;
-        const startBtn = document.getElementById('start-fight');
-        if (startBtn) {
-            startBtn.disabled = true;
-            startBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Combat en cours...';
-        }
-
-        this.log('Combat démarré !');
-        this.fightLoop();
-    }
-
-    async loadDamages() {
-        try {
-            const [fighter1DamageInstances, fighter2DamageInstances] = await Promise.all([
-                EntityProvider.fetchEntityDamages(this.fighter1.id),
-                EntityProvider.fetchEntityDamages(this.fighter2.id)
-            ]);
-
-            this.fighter1Damages = fighter1DamageInstances.map(damage => ({
-                type: damage.type,
-                degats: damage.degats
-            }));
-
-            this.fighter2Damages = fighter2DamageInstances.map(damage => ({
-                type: damage.type,
-                degats: damage.degats
-            }));
-        } catch (error) {
-            console.error('Erreur chargement damages:', error);
-            this.fighter1Damages = [];
-            this.fighter2Damages = [];
-        }
-    }
-
-    updateDamagesDisplay() {
-        const damages1El = document.getElementById('damages1');
         const damages2El = document.getElementById('damages2');
-
-        if (damages1El) {
-            damages1El.textContent = `Dégâts: ${this.fighter1Damages.length ?
-                this.fighter1Damages.map(d => `${d.type}:${d.degats}`).join(', ')
-                : 'Aucun'}`;
-        }
-
         if (damages2El) {
-            damages2El.textContent = `Dégâts: ${this.fighter2Damages.length ?
-                this.fighter2Damages.map(d => `${d.type}:${d.degats}`).join(', ')
-                : 'Aucun'}`;
+            damages2El.textContent = `Dégâts: ${this.fighter2Damages.map(d => `${d.type}:${d.degats}`).join(', ')}`;
         }
     }
 
-
-    async fightLoop() {
-        while (this.fighter1.currentPv > 0 && this.fighter2.currentPv > 0 && this.isFighting) {
-            this.turn++;
-
-            // Fighter1 attaque
-            const dmg1 = this.getRandomDamage(this.fighter1Damages);
-            this.fighter2.currentPv = Math.max(0, this.fighter2.currentPv - dmg1.degats);
-            this.log(`<span class="text-danger">${this.fighter1.nom}</span> (${dmg1.type}) inflige <strong>${dmg1.degats}</strong> dégâts à ${this.fighter2.nom}`);
-            this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
-
-            if (this.fighter2.currentPv <= 0) break;
-
-            // Fighter2 attaque
-            const dmg2 = this.getRandomDamage(this.fighter2Damages);
-            this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - dmg2.degats);
-            this.log(`<span class="text-primary">${this.fighter2.nom}</span> (${dmg2.type}) inflige <strong>${dmg2.degats}</strong> dégâts à ${this.fighter1.nom}`);
-            this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
-
-            await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-
-        if (this.isFighting) {
-            const winner = this.fighter1.currentPv > 0 ? this.fighter1.nom : this.fighter2.nom;
-            this.log(`<span class="text-success fs-5">${winner} gagne le combat !</span>`);
-            this.isFighting = false;
-        }
-        // À la fin de fightLoop(), après this.isFighting = false;
+    async newFight() {
+        this.turn = 1;
+        this.isFighting = false;
+        
         const startBtn = document.getElementById('start-fight');
         if (startBtn) {
             startBtn.disabled = false;
-            startBtn.innerHTML = '<i class="bi bi-play"></i> Nouveau combat';
+            startBtn.style.display = 'inline-block';
+        }
+        document.getElementById('actions-panel').classList.add('d-none');
+        document.getElementById('turn-indicator').textContent = 'En attente';
+        document.getElementById('turn-indicator').className = 'badge bg-secondary';
+
+        [this.fighter1, this.fighter2] = this.pickRandomFighters();
+        await this.loadDamages();
+        
+        this.initFightersState();
+        this.updateUIFighters();
+
+        const logList = document.getElementById('log-list');
+        if (logList) {
+            logList.innerHTML = '<li class="list-group-item">Nouveaux combattants prêts ! Cliquez "Démarrer le combat".</li>';
+        }
+    }
+
+    startFight() {
+        this.isFighting = true;
+        this.turn = 1;
+        this.isPlayerTurn = true;
+        
+        const startBtn = document.getElementById('start-fight');
+        if (startBtn) {
+            startBtn.style.display = 'none';
+        }
+
+        document.getElementById('actions-panel').classList.remove('d-none');
+        this.log('Le combat commence !');
+        this.setupPlayerActions();
+        this.processTurn();
+    }
+
+    setupPlayerActions() {
+        const actionsContainer = document.getElementById('player-attacks');
+        actionsContainer.innerHTML = '';
+
+        this.fighter1Damages.forEach((attack) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-primary';
+            btn.innerHTML = `<strong>${attack.type}</strong> <span class="badge bg-light text-dark">${attack.degats} DMG</span>`;
+            btn.onclick = () => this.playerAttack(attack);
+            actionsContainer.appendChild(btn);
+        });
+    }
+
+    setPlayerActionsEnabled(enabled) {
+        const actionsContainer = document.getElementById('player-attacks');
+        if(!actionsContainer) return;
+        const buttons = actionsContainer.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.disabled = !enabled;
+        });
+    }
+
+    processTurn() {
+        if (!this.isFighting) return;
+
+        const turnIndicator = document.getElementById('turn-indicator');
+        if (this.isPlayerTurn) {
+            turnIndicator.textContent = "C'est votre tour !";
+            turnIndicator.className = 'badge bg-primary';
+            this.setPlayerActionsEnabled(true);
+        } else {
+            turnIndicator.textContent = "Tour de l'adversaire...";
+            turnIndicator.className = 'badge bg-danger';
+            this.setPlayerActionsEnabled(false);
+            
+            setTimeout(() => {
+                this.enemyAttack();
+            }, 1000);
+        }
+    }
+
+    playerAttack(attack) {
+        if (!this.isFighting || !this.isPlayerTurn) return;
+
+        this.fighter2.currentPv = Math.max(0, this.fighter2.currentPv - attack.degats);
+        this.log(`<span class="text-primary">${this.fighter1.nom}</span> utilise <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
+        this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
+
+        this.setPlayerActionsEnabled(false);
+        this.checkWinCondition();
+
+        if (this.isFighting) {
+            this.isPlayerTurn = false;
+            this.processTurn();
+        }
+    }
+
+    enemyAttack() {
+        if (!this.isFighting || this.isPlayerTurn) return;
+
+        const attack = this.getRandomDamage(this.fighter2Damages);
+        
+        this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - attack.degats);
+        this.log(`<span class="text-danger">${this.fighter2.nom}</span> riposte avec <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
+        this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
+
+        this.checkWinCondition();
+
+        if (this.isFighting) {
+            this.turn++;
+            this.isPlayerTurn = true;
+            this.processTurn();
+        }
+    }
+
+    checkWinCondition() {
+        if (this.fighter2.currentPv <= 0) {
+            this.endFight(this.fighter1.nom, true);
+        } else if (this.fighter1.currentPv <= 0) {
+            this.endFight(this.fighter2.nom, false);
+        }
+    }
+
+    endFight(winnerName, playerWon) {
+        this.isFighting = false;
+        this.setPlayerActionsEnabled(false);
+        
+        const turnIndicator = document.getElementById('turn-indicator');
+        turnIndicator.textContent = "Combat terminé";
+        turnIndicator.className = 'badge bg-dark';
+
+        if (playerWon) {
+            this.log(`<span class="text-success fs-5">Victoire ! ${winnerName} a gagné le combat !</span>`);
+        } else {
+            this.log(`<span class="text-danger fs-5">Défaite... ${winnerName} vous a vaincu.</span>`);
+        }
+
+        const startBtn = document.getElementById('start-fight');
+        if (startBtn) {
+            startBtn.style.display = 'inline-block';
+            startBtn.disabled = true;
         }
     }
 }
