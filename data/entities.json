@@ -244,5 +244,31 @@
         {"type": "attaque", "degats": 5}
       ]
     }
+  ],
+  "armors": [
+    {
+      "material": "Cuir",
+      "successProbability": 0.1
+    },
+    {
+      "material": "Or",
+      "successProbability": 0.15
+    },
+    {
+      "material": "Côtes de maille",
+      "successProbability": 0.25
+    },
+    {
+      "material": "Fer",
+      "successProbability": 0.4
+    },
+    {
+      "material": "Diamant",
+      "successProbability": 0.6
+    },
+    {
+      "material": "Netherite",
+      "successProbabilty": 0.75
+    }
   ]
 }
