@@ -10,6 +10,7 @@ export default class Combat {
         this.turn = 1;
         this.isFighting = false;
         this.isPlayerTurn = true;
+        this.armors=EntityProvider.fetchArmors();
     }
 
     async render() {
@@ -163,8 +164,8 @@ export default class Combat {
                 degats: damage.degats
             }));
             
-            if(this.fighter1Damages.length === 0) this.fighter1Damages.push({ type: 'Coup de base', degats: 2 });
-            if(this.fighter2Damages.length === 0) this.fighter2Damages.push({ type: 'Coup de base', degats: 2 });
+            //if(this.fighter1Damages.length === 0) this.fighter1Damages.push({ type: 'Coup de base', degats: 2 });
+            //if(this.fighter2Damages.length === 0) this.fighter2Damages.push({ type: 'Coup de base', degats: 2 });
 
         } catch (error) {
             console.error('Erreur chargement damages:', error);

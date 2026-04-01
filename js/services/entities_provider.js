@@ -1,6 +1,7 @@
 import {ENDPOINT} from "../config.js";
 import Entity from "../model/entity.js";
 import Damage from "../model/damage.js";
+import Armor from "../model/armor.js";
 
 export default class EntitiesProvider{
     static async fetchEntities(){
@@ -63,5 +64,21 @@ export default class EntitiesProvider{
             damagesData["degats"].forEach(damage => damagesList.push(new Damage(damagesData["id"], damage)));
         }
         return damagesList;
+    }
+
+    static async fetchArmors(){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let armors=await fetch(`${ENDPOINT}/armors`, options);
+        let armorsList=[];
+        if(armors.ok) {
+            let armorsData = await armors.json();
+            armorsData["armors"].forEach(armor => armorsList.push(new Armor(armor)));
+        }
+        return armorsList;
     }
 }
