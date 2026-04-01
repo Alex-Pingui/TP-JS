@@ -10,28 +10,28 @@ export default class Combat {
         this.turn = 1;
         this.isFighting = false;
         this.isPlayerTurn = true;
-        this.armors=EntityProvider.fetchArmors();
+        this.armors = EntityProvider.fetchArmors();
     }
 
     async render() {
         this.entities = await EntityProvider.fetchEntities();
-        
+
         let shouldPickRandom = true;
         const storedEntities = localStorage.getItem('combatEntities');
-        
+
         if (storedEntities) {
             try {
                 const ids = JSON.parse(storedEntities);
                 if (ids[0]) {
                     this.fighter1 = this.entities.find(e => e.id == ids[0]);
-                    
+
                     if (ids[1]) {
                         this.fighter2 = this.entities.find(e => e.id == ids[1]);
-                        shouldPickRandom = false; 
+                        shouldPickRandom = false;
                     } else {
                         const autresEntites = this.entities.filter(e => e.id != ids[0]);
                         this.fighter2 = autresEntites[Math.floor(Math.random() * autresEntites.length)];
-                        shouldPickRandom = false; 
+                        shouldPickRandom = false;
                     }
                 }
                 localStorage.removeItem('combatEntities');
@@ -119,8 +119,8 @@ export default class Combat {
                                 </div>
                                 <small class="text-muted" id="damages2">
                                     Dégâts: ${this.fighter2Damages.length ?
-                                        this.fighter2Damages.map(d => `${d.type}:${d.degats}`).join(', ')
-                                    : 'Aucun'}
+                this.fighter2Damages.map(d => `${d.type}:${d.degats}`).join(', ')
+                : 'Aucun'}
                                 </small>
                             </div>
                         </div>
@@ -163,9 +163,6 @@ export default class Combat {
                 type: damage.type,
                 degats: damage.degats
             }));
-            
-            //if(this.fighter1Damages.length === 0) this.fighter1Damages.push({ type: 'Coup de base', degats: 2 });
-            //if(this.fighter2Damages.length === 0) this.fighter2Damages.push({ type: 'Coup de base', degats: 2 });
 
         } catch (error) {
             console.error('Erreur chargement damages:', error);
@@ -222,7 +219,7 @@ export default class Combat {
     initFightersState() {
         this.fighter1.currentPv = this.fighter1.pv;
         this.fighter1.maxPv = this.fighter1.pv;
-        
+
         this.fighter2.currentPv = this.fighter2.pv;
         this.fighter2.maxPv = this.fighter2.pv;
 
@@ -234,7 +231,7 @@ export default class Combat {
         document.getElementById('name1').textContent = this.fighter1.nom;
         document.getElementById('img1').src = `./images/${this.fighter1.image}`;
         document.getElementById('comp1').textContent = this.fighter1.comportement;
-        
+
         document.getElementById('name2').textContent = this.fighter2.nom;
         document.getElementById('img2').src = `./images/${this.fighter2.image}`;
         document.getElementById('comp2').textContent = this.fighter2.comportement;
@@ -248,7 +245,7 @@ export default class Combat {
     async newFight() {
         this.turn = 1;
         this.isFighting = false;
-        
+
         const startBtn = document.getElementById('start-fight');
         if (startBtn) {
             startBtn.disabled = false;
@@ -260,7 +257,7 @@ export default class Combat {
 
         [this.fighter1, this.fighter2] = this.pickRandomFighters();
         await this.loadDamages();
-        
+
         this.initFightersState();
         this.updateUIFighters();
 
@@ -274,7 +271,7 @@ export default class Combat {
         this.isFighting = true;
         this.turn = 1;
         this.isPlayerTurn = true;
-        
+
         const startBtn = document.getElementById('start-fight');
         if (startBtn) {
             startBtn.style.display = 'none';
@@ -319,7 +316,7 @@ export default class Combat {
 
         this.log(`<span class="text-secondary">${this.fighter1.nom}</span> est pacifique et passe son tour.`);
         this.setPlayerActionsEnabled(false);
-        
+
         if (this.isFighting) {
             this.isPlayerTurn = false;
             this.processTurn();
@@ -328,7 +325,7 @@ export default class Combat {
 
     setPlayerActionsEnabled(enabled) {
         const actionsContainer = document.getElementById('player-attacks');
-        if(!actionsContainer) return;
+        if (!actionsContainer) return;
         const buttons = actionsContainer.querySelectorAll('button');
         buttons.forEach(btn => {
             btn.disabled = !enabled;
@@ -347,10 +344,29 @@ export default class Combat {
             turnIndicator.textContent = "Tour de l'adversaire...";
             turnIndicator.className = 'badge bg-danger';
             this.setPlayerActionsEnabled(false);
-            
+
             setTimeout(() => {
                 this.enemyAttack();
             }, 1000);
+        }
+    }
+
+    getArmorForFighter(fighter) {
+        const randomIndex = Math.floor(Math.random() * this.armors.length);
+        this.log(`<span class="text-info">${fighter.nom} trouve une armure de type <strong>${this.armors[randomIndex].material}</strong> !</span>`);
+        return this.armors[randomIndex];
+    }
+
+    tryToUseArmor() {
+        if (this.fighter2.currentPv > 0 && Math.random() <= 0.5) {
+            const armor = this.getArmorForFighter(this.fighter2);
+            if (armor.tryToProtect()) {
+                this.fighter2.currentPv = Math.min(this.fighter2.maxPv, this.fighter2.currentPv);
+                this.log(`<span class="text-info">${this.fighter2.nom} a réussi à se protéger avec son armure !</span>`);
+                this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
+            } else {
+                this.log(`<span class="text-warning">${this.fighter2.nom} a tenté de se protéger mais a échoué...</span>`);
+            }
         }
     }
 
@@ -360,6 +376,8 @@ export default class Combat {
         this.fighter2.currentPv = Math.max(0, this.fighter2.currentPv - attack.degats);
         this.log(`<span class="text-primary">${this.fighter1.nom}</span> utilise <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
         this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
+
+        this.tryToUseArmor();
 
         this.setPlayerActionsEnabled(false);
         this.checkWinCondition();
@@ -377,11 +395,13 @@ export default class Combat {
             this.log(`<span class="text-secondary">${this.fighter2.nom}</span> est pacifique et passe son tour.`);
         } else {
             const attack = this.getRandomDamage(this.fighter2Damages);
-            
+
             this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - attack.degats);
             this.log(`<span class="text-danger">${this.fighter2.nom}</span> riposte avec <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
             this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
-            
+
+            this.tryToUseArmor();
+
             this.checkWinCondition();
         }
 
@@ -403,7 +423,7 @@ export default class Combat {
     endFight(winnerName, playerWon) {
         this.isFighting = false;
         this.setPlayerActionsEnabled(false);
-        
+
         const turnIndicator = document.getElementById('turn-indicator');
         turnIndicator.textContent = "Combat terminé";
         turnIndicator.className = 'badge bg-dark';
