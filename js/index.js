@@ -32,7 +32,7 @@ const router = async () => {
         await page.after_render();
     }
     content.addEventListener('click', (e) => {
-        if (e.target.matches('.btn[href^="#/entities/"]' || e.target.matches('a[href^="#/combat"]'))) {
+        if (e.target.matches('.btn[href^="#/entities/"]') || e.target.matches('a[href^="#/combat"]')) {
             e.preventDefault();
             location.hash = e.target.getAttribute('href');
         }
