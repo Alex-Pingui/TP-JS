@@ -372,7 +372,8 @@ export default class Combat {
             if (Math.random() <= 0.5) {
                 const randomArmor = this.armors[Math.floor(Math.random() * this.armors.length)];
                 target.armor = randomArmor;
-                this.log(`<span class="text-warning">${target.nom}</span> trouve une armure en <strong>${randomArmor.material}</strong> en étant gravement blessé !`);
+                const probabilityPercent = Math.round(randomArmor.successProbability * 100);
+                this.log(`<span class="text-warning">${target.nom}</span> trouve une armure en <strong>${randomArmor.material}</strong> en étant gravement blessé ! <span class="badge bg-info text-dark">${probabilityPercent}% de chance de bloquer</span>`);
             }
         }
     }
