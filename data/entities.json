@@ -268,7 +268,7 @@
     },
     {
       "material": "Netherite",
-      "successProbabilty": 0.75
+      "successProbability": 0.75
     }
   ]
 }

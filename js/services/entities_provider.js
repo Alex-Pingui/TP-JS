@@ -77,7 +77,8 @@ export default class EntitiesProvider{
         let armorsList=[];
         if(armors.ok) {
             let armorsData = await armors.json();
-            armorsData["armors"].forEach(armor => armorsList.push(new Armor(armor)));
+            let armorsArray = Array.isArray(armorsData) ? armorsData : (armorsData["armors"] || []);
+            armorsArray.forEach(armor => armorsList.push(new Armor(armor)));
         }
         return armorsList;
     }
