@@ -50,9 +50,12 @@ export default class EntityAll {
                                         </a>
                                         <button class="btn btn-sm btn-outline-secondary add-to-fight" id="${entity.id}">Sélectionner</button>
                                     </div>
-                                    <small class="text-body-secondary">
-                                        ${entity.pv} <i class="bi bi-heart text-danger" style="font-size: 1.3rem;"></i>
+                                    <span>
+                                    ${entity.pv} 
+                                    <small>
+                                    <img class="card-img-top" data-src="./images/heart.png">
                                     </small>
+                                    </span>
                                 </div>
                             </div>
                         </div>
