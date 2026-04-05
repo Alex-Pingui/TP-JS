@@ -35,7 +35,7 @@ export default class EntityAll {
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                 ${entities.map(entity =>
             /*html*/`
-                    <div class="col entity-card">
+                    <div class="col entity-card card-${entity.id}">
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}" />
@@ -44,7 +44,7 @@ export default class EntityAll {
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group gap-1">
-                                    <a href="#/entities" class="btn btn-sm btn-outline-secondary add-favorite" id="${entity.id}">Ajouter aux favoris</a>
+                                    <button class="btn btn-sm btn-outline-secondary add-favorite" id="favorite-${entity.id}">Ajouter aux favoris</button>
                                         <a href="#/entities/${entity.id}" class="btn btn-sm btn-outline-secondary">
                                             Voir
                                         </a>
@@ -69,7 +69,7 @@ export default class EntityAll {
         EntityAll.setupLazyLoading();
         this.setupSearch();
         EntityAll.addFavorite();
-        EntityAll.removeFavorite("/entities");
+        EntityAll.removeFavorite();
         EntityAll.reloadFavorites();
         this.setupAddEntityToFight();
         this.setupRemoveEntityToFight();
@@ -206,11 +206,12 @@ export default class EntityAll {
 
     static addFavorite(){
         let btns=document.querySelectorAll(".add-favorite");
-        btns.forEach(btn => btn.addEventListener('click', (e) => {
-            let entityPromise=EntityProvider.fetchEntity(btn.id);
-            entityPromise.then(
-                entity => {
-                    EntityAll.favoritesEntities[entity.id]=`<div class="col entity-card" id="${entity.id}">
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                let entityPromise=EntityProvider.fetchEntity(btn.id.split("-")[1]);
+                entityPromise.then(
+                    entity => {
+                        EntityAll.favoritesEntities[entity.id]=`<div class="col entity-card" id="${entity.id}">
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
@@ -219,7 +220,7 @@ export default class EntityAll {
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group gap-1">
-                                        <a href="#/entities" class="btn btn-sm btn-outline-secondary remove-favorite" id="${entity.id}">Retirer des favoris</a>
+                                        <button class="btn btn-sm btn-outline-secondary remove-favorite" id="favorite-${entity.id}">Retirer des favoris</button>
                                     </div>
                                     <small class="text-body-secondary">
                                         ${entity.pv} <i class="bi bi-heart" style="font-size: 1.3rem;"></i>
@@ -228,14 +229,45 @@ export default class EntityAll {
                             </div>
                         </div>
                     </div>`;
-                    EntityAll.addedFavoritesEntities++;
-                    EntityAll.reloadFavorites();
-                }
-            ).catch(error => console.log(error));
-        }))
+                        EntityAll.addedFavoritesEntities++;
+                        let btns=document.querySelectorAll(`#favorite-${entity.id}.add-favorite`);
+                        btns.forEach(btn => {
+                            btn.innerText="Déjà présent dans les favoris";
+                            btn.disabled = true;
+                        })
+                        EntityAll.reloadFavorites();
+                    }
+                ).catch(error => console.log(error));
+            });
+        });
     }
 
-    static removeFavorite(fromPage){
+    static removeFavorite() {
+        document.addEventListener('click', (e) => {
+
+            if (e.target.classList.contains('remove-favorite')) {
+                e.preventDefault();
+
+                const id = e.target.id.split('-')[1];
+
+                // supprimer des favoris
+                delete EntityAll.favoritesEntities[id];
+                EntityAll.addedFavoritesEntities--;
+
+                const btns = document.querySelectorAll(`#favorite-${id}`);
+                btns.forEach(btn => {
+                    btn.classList.add('add-favorite');
+                    btn.innerText = "Ajouter aux favoris";
+                    btn.disabled = false;
+                });
+
+                EntityAll.reloadFavorites();
+            }
+
+        });
+    }
+
+    static removeFavoriteOld(){
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-favorite')) {
                 const card = e.target.closest('.entity-card');
@@ -244,7 +276,12 @@ export default class EntityAll {
                     EntityAll.favoritesEntities[card.id]="";
                     EntityAll.addedFavoritesEntities--;
                     console.log(EntityAll.addedFavoritesEntities);
-                    card.querySelector(".remove-favorite").href=`#${fromPage}`;
+                    console.log(card.id);
+                    let btns=document.querySelectorAll(`#${card.id}.remove-favorite`);
+                    btns.forEach(btn => {
+                        btn.classList.replace('remove-favorite', 'add-favorite');
+                        btn.innerText="Ajouter aux favoris";
+                    })
                     EntityAll.reloadFavorites();
                 }
             }
