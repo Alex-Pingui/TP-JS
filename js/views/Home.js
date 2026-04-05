@@ -37,7 +37,7 @@ export default class Home {
   async after_render() {
     this.allEntities = await EntitiesProvider.fetchEntities();
     this.setupSearchInput();
-    EntityAll.removeFavorite("/");
+    EntityAll.removeFavorite();
     EntityAll.reloadFavorites();
   }
 
