@@ -2,6 +2,7 @@ import {ENDPOINT} from "../config.js";
 import Entity from "../model/entity.js";
 import Damage from "../model/damage.js";
 import Armor from "../model/armor.js";
+import Fight from "../model/fight.js";
 
 export default class EntitiesProvider{
     static async fetchEntities(){
@@ -84,7 +85,6 @@ export default class EntitiesProvider{
     }
 
     static async addFight(fight){
-        console.log(fight.toJson());
         const options={
             method: 'POST',
             headers: {
@@ -93,5 +93,23 @@ export default class EntitiesProvider{
             body: JSON.stringify(fight.toJson())
         };
         await fetch(`${ENDPOINT}/fights`, options);
+    }
+
+    static async fetchFights(){
+        const options={
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        let response=await fetch(`${ENDPOINT}/fights`, options);
+        let fights=[];
+        if(response.ok) {
+            let fightsData = await response.json();
+            fights=Promise.all(
+                fightsData.map(fight => Fight.fromJson(fight))
+            );
+        }
+        return fights;
     }
 }

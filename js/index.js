@@ -6,13 +6,15 @@ import EntityDetail from "./views/details.js";
 import About from "./views/About.js";
 import Error404 from "./views/Error404.js";
 import Combat from "./views/Combat.js";
+import Fights from "./views/combats.js";
 
 const routes = {
     '/' : Home,
     '/entities' : EntityAll,
     '/entities/:id' : EntityDetail,
     '/combat' : Combat,
-    '/about' : About
+    '/about' : About,
+    '/combats': Fights
 };
 
 const router = async () => {
