@@ -82,4 +82,16 @@ export default class EntitiesProvider{
         }
         return armorsList;
     }
+
+    static async addFight(fight){
+        console.log(fight.toJson());
+        const options={
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(fight.toJson())
+        };
+        await fetch(`${ENDPOINT}/fights`, options);
+    }
 }
