@@ -38,7 +38,7 @@ export default class EntityAll {
                     <div class="col entity-card card-${entity.id}">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}" />
+                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}" style="width: 120px; height: 120px; object-fit: cover;" />
                                 <p class="card-text entity-text">
                                     ${entity.nom} - ${entity.comportement}
                                 </p>
@@ -53,7 +53,7 @@ export default class EntityAll {
                                     <span>
                                     ${entity.pv} 
                                     <small>
-                                    <img class="card-img-top" data-src="./images/heart.png">
+                                    <img class="card-img-top" data-src="./images/heart.png" style="width: 20px; height: 20px;">
                                     </small>
                                     </span>
                                 </div>
@@ -124,7 +124,7 @@ export default class EntityAll {
                         document.querySelector(".selected-entities").innerHTML+=`<div class="col entity-card selected-fighter" data-id="${entity.id}">
                         <div class="card shadow-sm border-warning">
                             <div class="card-body">
-                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
+                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}" style="width: 120px; height: 120px; object-fit: cover;"/>
                                 <p class="card-text entity-text">
                                     ${entity.nom} - ${entity.comportement}
                                 </p>
@@ -132,9 +132,12 @@ export default class EntityAll {
                                 <div class="btn-group gap-1">
                                         <button class="btn btn-sm btn-outline-danger remove-to-fight" data-id="${entity.id}">Retirer du combat</button>
                                     </div>
-                                    <small class="text-body-secondary">
-                                        ${entity.pv} <i class="bi bi-heart text-danger" style="font-size: 1.3rem;"></i>
+                                    <span>
+                                    ${entity.pv} 
+                                    <small>
+                                    <img class="card-img-top" data-src="./images/heart.png" style="width: 20px; height: 20px;">
                                     </small>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -217,7 +220,7 @@ export default class EntityAll {
                         EntityAll.favoritesEntities[entity.id]=`<div class="col entity-card" id="${entity.id}">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}"/>
+                                <img class="bd-placeholder-img card-img-top" data-src="./images/${entity.image}" style="width: 120px; height: 120px; object-fit: cover;"/>
                                 <p class="card-text entity-text">
                                     ${entity.nom} - ${entity.comportement}
                                 </p>
@@ -225,9 +228,12 @@ export default class EntityAll {
                                 <div class="btn-group gap-1">
                                         <button class="btn btn-sm btn-outline-secondary remove-favorite" id="favorite-${entity.id}">Retirer des favoris</button>
                                     </div>
-                                    <small class="text-body-secondary">
-                                        ${entity.pv} <i class="bi bi-heart" style="font-size: 1.3rem;"></i>
+                                    <span>
+                                    ${entity.pv} 
+                                    <small>
+                                    <img class="card-img-top" data-src="./images/heart.png" style="width: 20px; height: 20px;">
                                     </small>
+                                    </span>
                                 </div>
                             </div>
                         </div>
