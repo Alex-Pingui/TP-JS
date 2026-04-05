@@ -1,4 +1,5 @@
 import EntityProvider from "../services/entities_provider.js";
+import Fight from "../model/fight.js";
 
 export default class Combat {
     constructor() {
@@ -11,6 +12,7 @@ export default class Combat {
         this.isFighting = false;
         this.isPlayerTurn = true;
         this.armors=EntityProvider.fetchArmors();
+        this.winner=null;
     }
 
     async render() {
@@ -137,6 +139,9 @@ export default class Combat {
                             <li class="list-group-item">Prêt pour un nouveau combat !</li>
                         </ul>
                     </div>
+                </div>
+                
+                <div id="note-attribution">
                 </div>
             </div>
         `;
@@ -286,6 +291,7 @@ export default class Combat {
         if (this.fighter1.comportement.toLowerCase() === 'passif' && this.fighter2.comportement.toLowerCase() === 'passif') {
             this.log(`<span class="text-warning fs-5">Match nul ! Les deux entités sont pacifiques et refusent de se battre.</span>`);
             this.endFight('Personne', null);
+            this.noteFight();
             return;
         }
 
@@ -394,13 +400,17 @@ export default class Combat {
 
     checkWinCondition() {
         if (this.fighter2.currentPv <= 0) {
-            this.endFight(this.fighter1.nom, true);
+            this.endFight(this.fighter1, true);
+            this.noteFight();
         } else if (this.fighter1.currentPv <= 0) {
-            this.endFight(this.fighter2.nom, false);
+            this.endFight(this.fighter2, false);
+            this.noteFight();
         }
     }
 
-    endFight(winnerName, playerWon) {
+    endFight(winner, playerWon) {
+        this.winner=winner;
+        let winnerName=winner.nom;
         this.isFighting = false;
         this.setPlayerActionsEnabled(false);
         
@@ -421,5 +431,36 @@ export default class Combat {
             startBtn.style.display = 'inline-block';
             startBtn.disabled = true;
         }
+
+        const noteAttributionDiv=document.querySelector("#note-attribution");
+        noteAttributionDiv.innerHTML=`<h2>Attribuer une note au combat entre 1 et 10</h2>
+
+            <div class="mb-4">
+            <input
+        id="note-input"
+        class="form-control form-control-lg"
+        type="number"
+        min="0"
+        max="10"
+        step="1"
+            />
+            <button class="btn btn-sm btn-outline-secondary note-fight">Noter le combat</button>
+    </div>`;
+    }
+
+    noteFight() {
+        let noteFightBtn=document.querySelector(".note-fight");
+        console.log(noteFightBtn);
+        noteFightBtn.addEventListener('click', () => {
+            let note=parseInt(document.querySelector("#note-input").value);
+            if(note<1 || note>10) {
+                alert("Veuillez rentrer une note comprise entre 1 et 10");
+                return;
+            }
+
+            let fight = new Fight(this.fighter1, this.fighter2, this.winner, note);
+            console.log(fight);
+            EntityProvider.addFight(fight);
+        });
     }
 }
