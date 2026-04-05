@@ -7,7 +7,11 @@ export default class Armor{
         this.#successProbability = data["successProbability"];
     }
 
-    tryToProtect(){
+    get material() { return this.#material; }
+    get successProbability() { return this.#successProbability; }
 
+    tryToProtect(){
+        const random = Math.random();
+        return random < this.#successProbability;
     }
 }

@@ -10,6 +10,7 @@ export default class Entity{
     #hauteur;
     #largeur;
     #image;
+    #armor;
 
     #selectedToFight;
 
@@ -23,8 +24,12 @@ export default class Entity{
         this.#hauteur = data["hauteur"];
         this.#largeur = data["largeur"];
         this.#image = data["image"];
+        this.#armor = null;
         this.#selectedToFight=false;
     }
+
+    get armor() { return this.#armor; }
+    set armor(armor) { this.#armor = armor; }
 
     get id() { return this.#id; }
 

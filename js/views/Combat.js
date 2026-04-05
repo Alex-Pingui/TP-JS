@@ -11,12 +11,13 @@ export default class Combat {
         this.turn = 1;
         this.isFighting = false;
         this.isPlayerTurn = true;
-        this.armors=EntityProvider.fetchArmors();
         this.winner=null;
+        this.armors = [];
     }
 
     async render() {
         this.entities = await EntityProvider.fetchEntities();
+        this.armors = await EntityProvider.fetchArmors();
         
         let shouldPickRandom = true;
         const storedEntities = localStorage.getItem('combatEntities');
@@ -168,9 +169,6 @@ export default class Combat {
                 type: damage.type,
                 degats: damage.degats
             }));
-            
-            //if(this.fighter1Damages.length === 0) this.fighter1Damages.push({ type: 'Coup de base', degats: 2 });
-            //if(this.fighter2Damages.length === 0) this.fighter2Damages.push({ type: 'Coup de base', degats: 2 });
 
         } catch (error) {
             console.error('Erreur chargement damages:', error);
@@ -227,9 +225,11 @@ export default class Combat {
     initFightersState() {
         this.fighter1.currentPv = this.fighter1.pv;
         this.fighter1.maxPv = this.fighter1.pv;
+        this.fighter1.armor = null;
         
         this.fighter2.currentPv = this.fighter2.pv;
         this.fighter2.maxPv = this.fighter2.pv;
+        this.fighter2.armor = null;
 
         this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
         this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
@@ -360,12 +360,34 @@ export default class Combat {
         }
     }
 
+    applyAttack(attacker, target, attack, attackerIndex, targetIndex) {
+        let damageToApply = attack.degats;
+
+        if (target.armor && target.armor.tryToProtect()) {
+            this.log(`<span class="text-info">${target.nom}</span> a bloqué l'attaque de <strong>${attack.type}</strong> grâce à son armure en <span class="badge bg-secondary">${target.armor.material}</span> !`);
+            damageToApply = 0;
+        } else {
+            const attackerClass = attackerIndex === 1 ? 'primary' : 'danger';
+            this.log(`<span class="text-${attackerClass}">${attacker.nom}</span> utilise <strong>${attack.type}</strong> et inflige <strong>${damageToApply}</strong> dégâts !`);
+        }
+
+        target.currentPv = Math.max(0, target.currentPv - damageToApply);
+        this.updateHealth(target, target.currentPv, targetIndex);
+
+        if (target.currentPv > 0 && target.currentPv < (target.maxPv / 2) && !target.armor && this.armors && this.armors.length > 0) {
+            if (Math.random() <= 0.5) {
+                const randomArmor = this.armors[Math.floor(Math.random() * this.armors.length)];
+                target.armor = randomArmor;
+                const probabilityPercent = Math.round(randomArmor.successProbability * 100);
+                this.log(`<span class="text-warning">${target.nom}</span> trouve une armure en <strong>${randomArmor.material}</strong> en étant gravement blessé ! <span class="badge bg-info text-dark">${probabilityPercent}% de chance de bloquer</span>`);
+            }
+        }
+    }
+
     playerAttack(attack) {
         if (!this.isFighting || !this.isPlayerTurn) return;
 
-        this.fighter2.currentPv = Math.max(0, this.fighter2.currentPv - attack.degats);
-        this.log(`<span class="text-primary">${this.fighter1.nom}</span> utilise <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
-        this.updateHealth(this.fighter2, this.fighter2.currentPv, 2);
+        this.applyAttack(this.fighter1, this.fighter2, attack, 1, 2);
 
         this.setPlayerActionsEnabled(false);
         this.checkWinCondition();
@@ -384,9 +406,7 @@ export default class Combat {
         } else {
             const attack = this.getRandomDamage(this.fighter2Damages);
             
-            this.fighter1.currentPv = Math.max(0, this.fighter1.currentPv - attack.degats);
-            this.log(`<span class="text-danger">${this.fighter2.nom}</span> riposte avec <strong>${attack.type}</strong> et inflige <strong>${attack.degats}</strong> dégâts !`);
-            this.updateHealth(this.fighter1, this.fighter1.currentPv, 1);
+            this.applyAttack(this.fighter2, this.fighter1, attack, 2, 1);
             
             this.checkWinCondition();
         }
